@@ -1,0 +1,47 @@
+body {
+    background-color: #99ccff;
+}
+h1 {
+    color: Black;
+}
+
+
+.mainBox{
+	width: 540px;
+	z-index: 1;
+	margin: 0 auto;
+	padding: 10px;
+}
+
+.smallBox1{
+	width: 50px;
+    height: 50px;
+    outline: 1px solid;
+    float: left;
+	background-color: #66ff99;
+	display: flex;
+}
+
+.smallBox2{
+	width: 50px;
+    height: 50px;
+    outline: 1px solid;
+    float: left;
+	background-color: #ccccff;
+	display: flex;
+}
+
+.smallBox1 > img {
+	margin: 0 auto;
+	width: 100%;
+	height: 100%;
+}
+.smallBox2 > img{
+	margin: 0 auto;
+	width: 100%;
+	height: 100%;
+}
+
+.turnDivClass{
+
+}

@@ -1,0 +1,44 @@
+<html>
+<!-- 
+
+#########################
+API Link: 
+
+https://serene-everglades-79780.herokuapp.com/api
+
+
+
+-->
+<head>
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/script.js"></script>
+
+</head>
+<body>
+
+<div class = "row text-center">
+		<h4>Welcome To Barca!</h4>
+
+</div>
+<div class = "row">
+	<div class = "text-center" id = "message">
+		Click on start game button to start the game 
+		and also choose which side you want to play on!
+	</div>
+	<br>
+		<div id="turnDiv" class=" text-center turnDivClass"></div>
+
+
+</div>
+
+<div id="barca_board" class = "mainBox "></div>
+<script>newBoard();</script>
+<script>placeWateringHoles();</script>
+<script>placeInitImage();</script>
+<script>initValidClicks();</script>
+		
+</body>
+</html>
