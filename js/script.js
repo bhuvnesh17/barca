@@ -52,6 +52,7 @@ var who_won = "";
 var mode = "PLAYER V. PLAYER";
 var singleMoveExists = {};
 var fear_counter = 0;
+var wateringHoleCounter = 0;
 
 function checkForValue(i,j){
 	if((i+j)%2 != 0)
@@ -95,7 +96,6 @@ function placeInitImage(){
 }
 
 function placeWateringHoles() {
-
 	document.getElementById('tile_3,3').innerHTML += '<img src = "./images/well.gif" id = "wateringhole_0"/>';
 	document.getElementById('tile_3,6').innerHTML += '<img src = "./images/well.gif" id = "wateringhole_1"/>';
 	document.getElementById('tile_6,3').innerHTML += '<img src = "./images/well.gif" id = "wateringhole_2"/>';
@@ -103,6 +103,8 @@ function placeWateringHoles() {
 
 	wateringHoleCounter = 4;
 }
+
+
 
 function placeImageForWateringHolesIfEmpty(){
 //'<div id= \''+title+'\' class="'+ checkForValue(i,j) + '" onclick = "clickMade(\''+i+'\',\''+j+'\',\''+title+'\',\''+barca_array[i][j]+'\')"></div>';
@@ -597,12 +599,15 @@ function checkVictory(){
 		barca_array[3][6][0] == barca_array[6][3][0]){
 		victory = true;
 		who_won = (barca_array[3][3][0] == 'W') ? "WHITE" : "BLACK";
+// bhuvnesh added this. wasnt there originally, can be removed if not needed , though i think it is
+		document.getElementById("message").innerHTML = "Game is over.." + who_won + " won!";
 	}
 	else if(barca_array[3][3] != "." && barca_array[3][3][0] == barca_array[6][3][0] &&
 		barca_array[6][3][0] == barca_array[6][6][0]){
 		victory = true;
 		who_won = (barca_array[3][3][0] == 'W') ? "WHITE" : "BLACK";
 		document.getElementById("message").innerHTML = "Game is over.." + who_won + " won!";
+		placeCrownOnWinningPieces()
 		return true;
 	}
 	else if(barca_array[3][3] != "." && barca_array[3][3][0] == barca_array[6][3][0] &&
@@ -610,6 +615,7 @@ function checkVictory(){
 		victory = true;
 		who_won = (barca_array[3][3][0] == 'W') ? "WHITE" : "BLACK";
 		document.getElementById("message").innerHTML = "Game is over..." + who_won + " won!";
+		placeCrownOnWinningPieces()
 		return true;
 	}
 	else if(barca_array[3][6] != "." && barca_array[3][6][0] == barca_array[6][3][0] &&
@@ -617,10 +623,33 @@ function checkVictory(){
 		victory = true;
 		who_won = (barca_array[3][6][0] == 'W') ? "WHITE" : "BLACK";
 		document.getElementById("message").innerHTML = "Game is over..." + who_won + " won!";
+		placeCrownOnWinningPieces()
 		return true;
 	}
 	return false;
 }
+
+function placeCrownOnWinningPieces() {
+
+	if(who_won == "BLACK"){
+			document.getElementById(getDiv("BE1")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("BE2")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("BL1")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("BL2")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("BR1")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("BR2")).innerHTML += '<img src = "./images/crown.gif" />';
+	}
+	else if(who_won == "WHITE"){
+		
+			document.getElementById(getDiv("WE1")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("WE2")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("WL1")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("WL2")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("WR1")).innerHTML += '<img src = "./images/crown.gif" />';
+			document.getElementById(getDiv("WR2")).innerHTML += '<img src = "./images/crown.gif" />';
+	}
+}
+
 
 /*Function that computes the pieces a certain user can move*/
 function recomputeValidClicks(turn){
@@ -677,6 +706,37 @@ function movePiece(side,type,row,col){
 }
 
 function getAIMove(){
+	var API_request = {};
+	var API_response = {};
+
+	API_request["pieces"] = [];
+	API_request["whitetomove"] = (player_TURN === "WHITE") ? false : true;
+
+	for(var piece in piece_locations){
+		var info = [[null,null,null,null,null,null]];
+		info[0] = (piece[0] == 'B') ? "BLACK" : "WHITE";
+		info[1] = (piece[1] == 'E') ? "ELEPHANT" : (piece[1] == 'L') ? "LION" : "MOUSE";
+		info[2] = getRow(piece);
+		info[3] = getCol(piece);
+		info[4] = checkIfInTrappedPieces(piece) || checkIfPieceIsScared(piece);
+		info[5] = checkIfInTrappedPieces(piece);
+		API_request["pieces"].push(info);
+	}
+
+	$.ajax({
+			type: "POST",
+			url: "https://serene-everglades-79780.herokuapp.com/api",
+			data: JSON.stringify(API_request),
+			dataType: "json",
+			contentType: 'application/json',
+			success: function(data){
+				alert(data["whitetomove"]);
+			},
+			error: function(data){
+				console.log(API_request);
+				alert("fail");
+			}
+		});
 	/*Send API request*/
 	/*Get the move from AI*/
 }
@@ -689,6 +749,10 @@ function clickMade(row,col,id,val){
 
 	if(victory){
 		document.getElementById("message").innerHTML = "Game is over.."+who_won+" won.";
+		placeCrownOnWinninPieces();
+	}
+	else if(mode === "PLAYER V. AI" && player_TURN === "BLACK"){
+		getAIMove();
 	}
 	else if(verifyValidClick(num)){
 		clicks_made = [];
@@ -729,11 +793,13 @@ function clickMade(row,col,id,val){
 				getAIMove();
 				recomputeValidClicks(player_TURN);
 				removeImageForScaredAndTrappedPieces();
+				removeImageForWateringHoles();
 //				setBoardPieces();
 //				setScaredPieces();
 //        setTrappedPieces();
 //				setPieceLocations();
 				placeImageForScaredAndTrappedPieces();
+				placeImageForWateringHolesIfEmpty();
 			}
 			/* IF MODE IS PLAYER V. PLAYER */
 			else{
