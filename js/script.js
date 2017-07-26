@@ -70,7 +70,7 @@ function checkForValue(i,j){
 
 /*Function that initializes the board*/
 function newBoard(){
-		document.getElementById('turnDiv').innerHTML = "Player :" + player_TURN;
+	printTurn();
 
 	var output = "";
 	for(var i = 0; i < 10; i++){
@@ -160,14 +160,19 @@ function removeImageForWateringHoles(){
 	wateringHoleCounter = 0;
 }
 
+function initializeGame(){
+	AIsmove = (player_TURN === "BLACK" && mode === "PLAYER V. AI") ? true : false;
+	initValidClicks();
+}
+
 /*Initializes the initial valid clicks on the board*/
 function initValidClicks(){
-		valid_clicks.push(83);
-		valid_clicks.push(84);
-		valid_clicks.push(85);
-		valid_clicks.push(86);
-		valid_clicks.push(94);
-		valid_clicks.push(95);
+	valid_clicks.push(83);
+	valid_clicks.push(84);
+	valid_clicks.push(85);
+	valid_clicks.push(86);
+	valid_clicks.push(94);
+	valid_clicks.push(95);
 
 	if(player_TURN === "BLACK"){
 		barca_array[0][4] = "WE1";
@@ -251,17 +256,25 @@ function directionMovedIn(from_row,from_col,to_row,to_col)
 
 /*Switches turn of players in two-player mode*/
 function switchTurn(){
-	player_TURN = (player_TURN === "WHITE") ? "BLACK" : "WHITE";
-	printTurn();
+	checkVictory();
+	if(victory){
+		return;
+	}
+	else{
+		player_TURN = (player_TURN === "WHITE") ? "BLACK" : "WHITE";
+		printTurn();
+	}
 }
 
 function printTurn(){
 	if(mode === "PLAYER V. PLAYER" || AIsmove === false){
-		document.getElementById('turnDiv').innerHTML = "TURN: " + player_TURN;
+		document.getElementById('turnDiv').innerHTML = "<b>TURN: " + player_TURN +"</b>";
+		//console.log(document.getElementById('turnDiv').innerHTML);
 	}
-	else if(AIsmove){
+	else if(AIsmove === true){
 		var turn = (player_TURN === "WHITE") ? "BLACK" : "WHITE";
-		document.getElementById('turnDiv').innerHTML = "TURN: " +turn + ". AI is thinking...";
+		document.getElementById('turnDiv').innerHTML = "<b>TURN: " +turn + ". AI is thinking...</b>";
+	//	console.log(document.getElementById('turnDiv').innerHTML);
 	}
 }
 
@@ -539,7 +552,7 @@ function calculateScaredPieces(){
 			scared_pieces.add(key);
 		}
 	}
-	console.log("In calculating scared pieces: " + scared_pieces.size);
+//	console.log("In calculating scared pieces: " + scared_pieces.size);
 }
 
 /*Calculate new trapped pieces because of the move made and
@@ -679,28 +692,28 @@ function checkVictory(){
 		barca_array[3][6][0] == barca_array[6][6][0]){
 		victory = true;
 		who_won = (barca_array[3][3][0] == 'W') ? "WHITE" : "BLACK";
-		document.getElementById("message").innerHTML = "Game is over.." + who_won + " won!";
+		document.getElementById("message").innerHTML = "<b>Game is over..." + who_won + " won! Click on start game to start another game or reset to reset game back to its original state!</b>";
 		placeCrownOnWinningPieces();
 	}
 	else if(barca_array[3][3] != "." && barca_array[3][3][0] == barca_array[6][3][0] &&
 		barca_array[6][3][0] == barca_array[6][6][0]){
 		victory = true;
 		who_won = (barca_array[3][3][0] == 'W') ? "WHITE" : "BLACK";
-		document.getElementById("message").innerHTML = "Game is over.." + who_won + " won!";
+		document.getElementById("message").innerHTML = "<b>Game is over..." + who_won + " won! Click on start game to start another game or reset to reset game back to its original state!</b>";
 		placeCrownOnWinningPieces();
 	}
 	else if(barca_array[3][3] != "." && barca_array[3][3][0] == barca_array[6][3][0] &&
 		barca_array[6][3][0] == barca_array[3][6][0]){
 		victory = true;
 		who_won = (barca_array[3][3][0] == 'W') ? "WHITE" : "BLACK";
-		document.getElementById("message").innerHTML = "Game is over..." + who_won + " won!";
+		document.getElementById("message").innerHTML = "<b>Game is over..." + who_won + " won! Click on start game to start another game or reset to reset game back to its original state!</b>";
 		placeCrownOnWinningPieces();
 	}
 	else if(barca_array[3][6] != "." && barca_array[3][6][0] == barca_array[6][3][0] &&
 		barca_array[6][3][0] == barca_array[6][6][0]){
 		victory = true;
 		who_won = (barca_array[3][6][0] == 'W') ? "WHITE" : "BLACK";
-		document.getElementById("message").innerHTML = "Game is over..." + who_won + " won!";
+		document.getElementById("message").innerHTML = "<b>Game is over..." + who_won + " won! Click on start game to start another game or reset to reset game back to its original state!</b>";
 		placeCrownOnWinningPieces();
 	}
 }
@@ -822,6 +835,10 @@ function getAIMove(){
 	}
 	var API_request = {};
 
+	checkVictory();
+	if(victory){
+		return;
+	}
 	API_request["whitetomove"] = (player_TURN === "WHITE") ? false : true;
 	pieces = [];
 
@@ -845,6 +862,7 @@ function getAIMove(){
 			dataType: "json",
 			contentType: 'application/json',
 			success: function(data){
+				document.getElementById("message").innerHTML = "<b>AI is done making its move... now it is your turn...</b>";
 				removeImageForScaredAndTrappedPieces();
 				removeImageForWateringHoles();
 				resetBoardScaredAndTrappedPieces(data);
@@ -852,10 +870,11 @@ function getAIMove(){
 				placeImageForScaredAndTrappedPieces();
 				placeImageForWateringHolesIfEmpty();
 				checkVictory();
-				console.log("victory: " + victory);
+				AIsmove = false;
+				printTurn();
 			},
 			error: function(data){
-				alert("fail");
+				alert(data);
 			}
 		});
 	/*Send API request*/
@@ -871,14 +890,18 @@ function clickMade(row,col,id,val){
 	if(!gameStarted){
 		return;
 	}
+	if(AIsmove){
+		document.getElementById("message").innerHTML = "<b>Invalid move... It is AI's turn to move. Please wait until it is done making its move...</b>";
+		return;
+	}
 
 	if(victory){
-		document.getElementById("message").innerHTML = "Game is over.."+who_won+" won.";
+		document.getElementById("message").innerHTML = "<b>Game is over..." + who_won + " won! Click on start game to start another game or reset to reset game back to its original state!</b>";
 	}
 	else if(verifyValidClick(num)){
 		clicks_made = [];
 		clicks_made.push(num);
-		document.getElementById("message").innerHTML = "Choose where you want to move the piece to or select another piece to move...";
+		document.getElementById("message").innerHTML = "<b>Choose where you want to move the piece to or select another piece to move...</b>";
 	}
 	else if(clicks_made.length == 1){
 		var r1 = Math.floor(clicks_made[0]/10);
@@ -887,6 +910,8 @@ function clickMade(row,col,id,val){
 
 		if(value)
 		{
+			AIsmove = (mode === "PLAYER V. AI") ? true : false;
+			printTurn();
 			removeImageForScaredAndTrappedPieces();
 			removeImageForWateringHoles();
 			document.getElementById("tile_"+r1+","+c1).innerHTML = "";
@@ -900,17 +925,19 @@ function clickMade(row,col,id,val){
 			calculateTrappedPieces();
 			placeImageForScaredAndTrappedPieces();
 			placeImageForWateringHolesIfEmpty();
-			AIsmove = true;
+
+			if(mode === "PLAYER V. PLAYER"){
+				var turn = (player_TURN === "WHITE") ? "BLACK" : "WHITE";
+				document.getElementById("message").innerHTML = "<b> " + player_TURN + " has made the move.. Now it is " + turn + "'s move...</b>";
+			}
 
 			if(victory){
 				return;
 			}
 			/* IF MODE IS PLAYER V. AI*/
 			else if(mode === "PLAYER V. AI"){
-				printTurn();
+				document.getElementById("message").innerHTML = "<b>You have made your move.. Now it is " + "AI's turn</b>";
 				getAIMove();
-				AIsmove = false;
-				printTurn();
 				if(victory){
 					return;
 				}
@@ -922,22 +949,19 @@ function clickMade(row,col,id,val){
 			}
 		}
 		else{
-			document.getElementById("message").innerHTML = "Invalid Move. Please select a valid move...";
+			document.getElementById("message").innerHTML = "<b>Invalid Move. Please select a valid move for the piece you selected...</b>";
 		}
 	}
 	else{
-		document.getElementById("message").innerHTML = "Invalid Move. Please select a valid move...";
+		document.getElementById("message").innerHTML = "<b>Invalid Move. The piece you selected is not allowed to move or has no valid moves...</b>";
 	}
 }
 
 /*Initially does the move checking if it is AIs turn*/
 function checkIfItIsAIsMove(){
-	if(player_TURN === "BLACK"){
-			AIsmove = true;
+	if(AIsmove){
 			printTurn();
 			getAIMove();
-			AIsmove = false;
-			printTurn();
 	}
 }
 
@@ -965,8 +989,8 @@ function startGame(){
 			newBoard();
 			placeInitImage();
 			placeWateringHoles();
-			initValidClicks();
 			gameStarted = true;
+			initializeGame();
 		}
 	}
 	else{
@@ -983,7 +1007,7 @@ function startGame(){
 		placeInitImage();
 		placeWateringHoles();
 		gameStarted = true;
-		initValidClicks();
+		initializeGame();
 	}
 }
 
@@ -1003,7 +1027,7 @@ function resetGame(){
 			placeInitImage();
 			placeWateringHoles();
 			gameStarted = true;
-			initValidClicks();
+			initializeGame();
 		}
 	}
 }
