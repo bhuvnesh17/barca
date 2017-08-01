@@ -57,6 +57,23 @@ var AIsmove = false;
 var gameStarted = false;
 var resetState = {};
 
+var isRockPaperScissor = false;
+
+function switchPieces(){
+	isRockPaperScissor = true;
+	document.getElementById("changePieces").innerHTML = "In Progress";
+
+	/*
+1. remove all current images from the board,
+2. place watering holes back on the board,
+3. place images of rock paper scissors on the board, 
+	place them exactly as the animals were placed on the board using the animal positions.
+4. check if any scared pieces and then place their scared image back on.
+
+	*/
+
+}
+
 function checkForValue(i,j){
 	if((i+j)%2 != 0)
 	{
@@ -862,6 +879,7 @@ function getAIMove(){
 			dataType: "json",
 			contentType: 'application/json',
 			success: function(data){
+				document.getElementById("apiOutput").innerHTML = API_request["pieces"];
 				document.getElementById("message").innerHTML = "<b>AI is done making its move... now it is your turn...</b>";
 				removeImageForScaredAndTrappedPieces();
 				removeImageForWateringHoles();
@@ -879,6 +897,7 @@ function getAIMove(){
 		});
 	/*Send API request*/
 	/*Get the move from AI*/
+
 }
 
 /*Function that prints the board position to the backend upon a button click from user*/
@@ -914,9 +933,12 @@ function printBoardPosition(){
 			error: function(data){
 				alert(data);
 			}
+
 		});
 	/*Send API request*/
 	/*Print the board position to the endpoint*/
+	
+
 }
 
 /*Function that detects clicks and displays interactive user messages*/
